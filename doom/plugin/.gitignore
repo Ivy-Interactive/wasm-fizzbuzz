@@ -8,3 +8,4 @@ frontend/node_modules/
 # .NET build output
 bin/
 obj/
+nupkg/

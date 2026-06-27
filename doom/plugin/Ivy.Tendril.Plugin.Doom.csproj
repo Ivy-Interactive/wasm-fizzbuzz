@@ -4,6 +4,10 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PackageId>Ivy.Tendril.Plugin.Doom</PackageId>
+    <Description>DOOM (1993) running in WebAssembly as an Ivy Tendril plugin with dynamic WAD loading.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/Ivy-Interactive/wasm-fizzbuzz</RepositoryUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(CI)' != 'true'">
@@ -16,9 +20,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="frontend/dist/**/*" />
+    <EmbeddedResource Include="frontend/dist/**/*" Exclude="frontend/dist/*.wad;frontend/dist/*.wasm" />
     <EmbeddedResource Include="frontend/public/doom.wasm" />
-    <EmbeddedResource Include="frontend/public/doom1.wad" />
+    <EmbeddedResource Include="THIRD-PARTY-LICENSES" />
   </ItemGroup>
 
   <Target Name="BuildFrontend" BeforeTargets="Build" Condition="Exists('frontend/package.json')">
