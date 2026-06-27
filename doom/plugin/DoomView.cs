@@ -98,7 +98,19 @@ public class DoomView : ViewBase
                     }),
                 }
                 : Callout.Warning("No WAD file selected. Upload a .wad file or select one from the dropdown."))
-            | Text.Muted("Arrow keys to move, Ctrl to shoot, Space to open doors, Enter to start/menu.");
+            | Text.Muted("Arrow keys to move, Ctrl to shoot, Space to open doors, Enter to start/menu.")
+            | new Expandable(
+                Text.Muted("Third-Party Licenses"),
+                Layout.Vertical().Gap(2)
+                    | Text.Label("DOOM Engine (doom.wasm)")
+                    | Text.Muted("Source: github.com/Ivy-Interactive/wasm-fizzbuzz (forked from diekmann/wasm-fizzbuzz) — DOOM Source Code License (educational/non-commercial). Original wasm port by diekmann, CC BY-NC.")
+                    | Text.Label("musl libc")
+                    | Text.Muted("MIT License — musl.libc.org")
+                    | Text.Label("clang compiler-rt")
+                    | Text.Muted("Apache 2.0 with LLVM Exception — github.com/llvm/llvm-project")
+                    | Text.Label("lazy_static crate")
+                    | Text.Muted("MIT OR Apache-2.0 (dual-licensed)")
+            );
     }
 
     private static string? GetDefaultWad()

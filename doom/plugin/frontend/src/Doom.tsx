@@ -318,7 +318,7 @@ export const Doom: React.FC<DoomProps> = ({
       style={{
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
+        alignItems: "flex-start",
         gap: "8px",
       }}
     >
