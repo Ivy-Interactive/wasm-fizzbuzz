@@ -14,6 +14,13 @@ pub extern "C" fn doom_hook_weapon_fired(weapon: c_int) {
     unsafe { js_imports::js_on_weapon_fired(weapon) };
 }
 
+/// Called from DOOM C code when a hitscan bullet lands.
+/// target_type is the mobjtype_t of what was hit, or -1 for a miss.
+#[no_mangle]
+pub extern "C" fn doom_hook_shot_landed(weapon: c_int, target_type: c_int) {
+    unsafe { js_imports::js_on_shot_landed(weapon, target_type) };
+}
+
 /// Called from DOOM C code when the player kills an enemy.
 #[no_mangle]
 pub extern "C" fn doom_hook_enemy_killed(enemy_type: c_int, killer_weapon: c_int) {

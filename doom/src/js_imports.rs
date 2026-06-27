@@ -6,5 +6,6 @@ extern "C" {
     pub fn js_stdout(ptr: *const u8, len: usize);
     pub fn js_stderr(ptr: *const u8, len: usize);
     pub fn js_on_weapon_fired(weapon: i32);
+    pub fn js_on_shot_landed(weapon: i32, target_type: i32);
     pub fn js_on_enemy_killed(enemy_type: i32, killer_weapon: i32);
 }

@@ -10,6 +10,7 @@ public record DoomWidget : WidgetBase<DoomWidget>
 
     [Event] public EventHandler<Event<DoomWidget, DoomGameState>>? OnStateChanged { get; init; }
     [Event] public EventHandler<Event<DoomWidget, DoomWeaponEvent>>? OnWeaponFired { get; init; }
+    [Event] public EventHandler<Event<DoomWidget, DoomShotLandedEvent>>? OnShotLanded { get; init; }
     [Event] public EventHandler<Event<DoomWidget, DoomEnemyKilledEvent>>? OnEnemyKilled { get; init; }
 }
 
@@ -33,6 +34,12 @@ public record DoomAmmo
 public record DoomWeaponEvent
 {
     public string Weapon { get; init; } = "";
+}
+
+public record DoomShotLandedEvent
+{
+    public string Weapon { get; init; } = "";
+    public string? Hit { get; init; }
 }
 
 public record DoomEnemyKilledEvent

@@ -31,7 +31,6 @@ public class DoomView : ViewBase
             : null;
 
         return Layout.Vertical().Padding(4).Gap(3)
-            | Text.Muted("Arrow keys to move, Ctrl to shoot, Space to open doors, Enter to start/menu.")
             | (Layout.Horizontal().Gap(2)
                 | selectedWad.ToSelectInput(
                     availableWads.Select(w => new Option<string?>(w, w)).ToArray(),
@@ -79,7 +78,8 @@ public class DoomView : ViewBase
                         | Text.Block($"Cells: {gameState.Value?.Ammo.Cells ?? 0}")
                         | Text.Block($"Rockets: {gameState.Value?.Ammo.Rockets ?? 0}")
                         | (lastKill.Value != null ? Text.Muted(lastKill.Value) : Text.Muted("No kills yet"))))
-                : Callout.Warning("No WAD file selected. Upload a .wad file or select one from the dropdown."));
+                : Callout.Warning("No WAD file selected. Upload a .wad file or select one from the dropdown."))
+            | Text.Muted("Arrow keys to move, Ctrl to shoot, Space to open doors, Enter to start/menu.");
     }
 
     private static string? GetDefaultWad()

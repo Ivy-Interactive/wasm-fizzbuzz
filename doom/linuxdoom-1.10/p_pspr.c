@@ -41,8 +41,9 @@ rcsid[] = "$Id: p_pspr.c,v 1.5 1997/02/03 22:45:12 b1 Exp $";
 
 #include "p_pspr.h"
 
-// Hook for game events — implemented in Rust glue
+// Hooks for game events — implemented in Rust glue
 extern void doom_hook_weapon_fired(int weapon);
+extern void doom_hook_shot_landed(int weapon, int target_type); // target_type = -1 for miss
 
 #define LOWERSPEED		FRACUNIT*6
 #define RAISESPEED		FRACUNIT*6
@@ -634,7 +635,7 @@ P_GunShot
 {
     angle_t	angle;
     int		damage;
-	
+
     damage = 5*(P_Random ()%3+1);
     angle = mo->angle;
 
@@ -642,6 +643,9 @@ P_GunShot
 	angle += (P_Random()-P_Random())<<18;
 
     P_LineAttack (mo, angle, MISSILERANGE, bulletslope, damage);
+
+    if (mo->player)
+	doom_hook_shot_landed(mo->player->readyweapon, linetarget ? linetarget->type : -1);
 }
 
 

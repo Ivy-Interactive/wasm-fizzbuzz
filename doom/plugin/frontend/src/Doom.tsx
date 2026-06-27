@@ -139,6 +139,12 @@ export const Doom: React.FC<DoomProps> = ({
               weapon: WEAPON_NAMES[weapon] ?? `unknown_${weapon}`,
             }]);
           },
+          js_on_shot_landed: (weapon: number, targetType: number) => {
+            eventHandlerRef.current?.("OnShotLanded", idRef.current, [{
+              weapon: WEAPON_NAMES[weapon] ?? `unknown_${weapon}`,
+              hit: targetType >= 0 ? (ENEMY_NAMES[targetType] ?? `unknown_${targetType}`) : null,
+            }]);
+          },
           js_on_enemy_killed: (enemyType: number, killerWeapon: number) => {
             eventHandlerRef.current?.("OnEnemyKilled", idRef.current, [{
               enemy: ENEMY_NAMES[enemyType] ?? `unknown_${enemyType}`,
