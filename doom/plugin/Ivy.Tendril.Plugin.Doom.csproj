@@ -8,6 +8,8 @@
     <Description>DOOM (1993) running in WebAssembly as an Ivy Tendril plugin with dynamic WAD loading.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/Ivy-Interactive/wasm-fizzbuzz</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <NoWarn>NU5104</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(CI)' != 'true'">
@@ -23,6 +25,7 @@
     <EmbeddedResource Include="frontend/dist/**/*" Exclude="frontend/dist/*.wad;frontend/dist/*.wasm" />
     <EmbeddedResource Include="frontend/public/doom.wasm" />
     <EmbeddedResource Include="THIRD-PARTY-LICENSES" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <Target Name="BuildFrontend" BeforeTargets="Build" Condition="Exists('frontend/package.json')">
