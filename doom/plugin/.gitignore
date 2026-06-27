@@ -1,0 +1,10 @@
+# Copyrighted game data (DOOM shareware WAD) - must be sourced separately
+frontend/public/doom1.wad
+
+# Frontend build output
+frontend/dist/
+frontend/node_modules/
+
+# .NET build output
+bin/
+obj/

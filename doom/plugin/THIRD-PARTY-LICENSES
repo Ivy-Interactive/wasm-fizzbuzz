@@ -1,0 +1,49 @@
+This plugin contains third-party components with the following licenses:
+
+================================================================================
+doom.wasm — DOOM game engine compiled to WebAssembly
+================================================================================
+
+Source: https://github.com/diekmann/wasm-fizzbuzz/tree/main/doom
+Based on: https://github.com/id-Software/DOOM (linuxdoom-1.10)
+
+The DOOM source code is subject to the "DOOM Source Code License" (DOOMLIC.TXT)
+by id Software, Inc. Key terms:
+  - Permitted for educational use only
+  - May not be commercially exploited
+  - Copyright retained by id Software, Inc.
+
+Full license text: https://github.com/diekmann/wasm-fizzbuzz/blob/main/doom/linuxdoom-1.10/DOOMLIC.TXT
+
+Note: id Software separately re-released the DOOM source under GPL v2 in 1999
+at https://github.com/id-Software/DOOM. The wasm-fizzbuzz build used here
+operates under the original DOOMLIC.TXT terms.
+
+The wasm-fizzbuzz author's own contributions (Rust glue code, build scripts,
+main.js) are declared as CC BY-NC (Creative Commons Attribution-NonCommercial).
+Reference: https://github.com/diekmann/wasm-fizzbuzz/issues/11
+
+================================================================================
+musl libc (compiled into doom.wasm)
+================================================================================
+
+Source: https://musl.libc.org/
+License: MIT
+Full text: https://github.com/diekmann/wasm-fizzbuzz/blob/main/doom/musl-1.2.2/COPYRIGHT
+
+The wasm32 arch directory originates from Emscripten:
+https://github.com/emscripten-core/emscripten/tree/main/system/lib/libc/musl/arch/emscripten
+
+================================================================================
+clang compiler-rt builtins (compiled into doom.wasm)
+================================================================================
+
+Source: https://github.com/llvm/llvm-project/
+License: Apache 2.0 with LLVM Exception
+
+================================================================================
+lazy_static crate (compiled into doom.wasm)
+================================================================================
+
+Source: https://github.com/rust-lang-nursery/lazy-static.rs
+License: MIT OR Apache-2.0 (dual-licensed)
