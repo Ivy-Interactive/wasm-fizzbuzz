@@ -11,6 +11,7 @@ namespace Ivy.Tendril.Plugin.Doom;
 public class DoomPlugin : IIvyPlugin<ITendrilExtendedPluginContext>
 {
     internal static string WadsDirectory { get; private set; } = "";
+    internal static Action? OpenAnnoyingDialog { get; private set; }
 
     public PluginManifest Manifest { get; } = new()
     {
@@ -26,6 +27,10 @@ public class DoomPlugin : IIvyPlugin<ITendrilExtendedPluginContext>
     {
         WadsDirectory = Path.Combine(context.TendrilHome, "doom-wads");
         Directory.CreateDirectory(WadsDirectory);
+
+        OpenAnnoyingDialog = context.RegisterDialog(
+            "$doom-annoying",
+            dialogOpen => new DoomAnnoyingDialog(dialogOpen));
 
         context.AddApp(new AppDescriptor
         {

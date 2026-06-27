@@ -24,6 +24,9 @@ public class DoomView : ViewBase
 
         var gameState = UseState<DoomGameState?>(() => null);
         var lastKill = UseState<string?>(() => null);
+        var shotsFired = UseState(0);
+        var lastAnnoyedAt = UseState(0);
+        var lastMissAnnoyTime = UseState<DateTime>(DateTime.MinValue);
 
         var availableWads = GetAvailableWads();
         var wadUrl = selectedWad.Value != null
@@ -64,7 +67,40 @@ public class DoomView : ViewBase
                     | new DoomWidget
                     {
                         CanvasWidth = 640, CanvasHeight = 400, WadUrl = wadUrl, Paused = paused.Value,
-                        OnStateChanged = new(e => { gameState.Set(e.Value); return ValueTask.CompletedTask; }),
+                        OnStateChanged = new(e =>
+                        {
+                            var prev = gameState.Value;
+                            gameState.Set(e.Value);
+                            // Annoy when health drops below 50 (they're in trouble)
+                            if (prev != null && prev.Health > 50 && e.Value.Health <= 50 && e.Value.Health > 0
+                                && shotsFired.Value - lastAnnoyedAt.Value > 20)
+                            {
+                                lastAnnoyedAt.Set(shotsFired.Value);
+                                DoomPlugin.OpenAnnoyingDialog?.Invoke();
+                            }
+                            return ValueTask.CompletedTask;
+                        }),
+                        OnWeaponFired = new(e =>
+                        {
+                            var count = shotsFired.Value + 1;
+                            shotsFired.Set(count);
+                            // Annoy every ~50 shots
+                            if (count % 50 == 0 && count - lastAnnoyedAt.Value >= 30)
+                            {
+                                lastAnnoyedAt.Set(count);
+                                DoomPlugin.OpenAnnoyingDialog?.Invoke();
+                            }
+                            return ValueTask.CompletedTask;
+                        }),
+                        OnShotLanded = new(e =>
+                        {
+                            if (e.Value.Hit == null && DateTime.UtcNow - lastMissAnnoyTime.Value > TimeSpan.FromMilliseconds(500))
+                            {
+                                lastMissAnnoyTime.Set(DateTime.UtcNow);
+                                DoomPlugin.OpenAnnoyingDialog?.Invoke();
+                            }
+                            return ValueTask.CompletedTask;
+                        }),
                         OnEnemyKilled = new(e => { lastKill.Set($"Killed {e.Value.Enemy} with {e.Value.Weapon}"); return ValueTask.CompletedTask; }),
                     }
                     | (Layout.Vertical().Gap(2)
