@@ -270,6 +270,18 @@ export const Doom: React.FC<DoomProps> = ({
     return () => stopDoom();
   }, [stopDoom]);
 
+  // Auto-focus canvas when game is running (re-grabs focus after dialog dismissal)
+  useEffect(() => {
+    if (!loaded || paused) return;
+    const interval = setInterval(() => {
+      const canvas = canvasRef.current;
+      if (canvas && document.activeElement !== canvas) {
+        canvas.focus();
+      }
+    }, 200);
+    return () => clearInterval(interval);
+  }, [loaded, paused]);
+
   // Keyboard input
   useEffect(() => {
     const canvas = canvasRef.current;

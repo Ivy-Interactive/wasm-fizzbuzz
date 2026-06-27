@@ -22,8 +22,6 @@ public class DoomView : ViewBase
             selectedWad.Set(fileName);
         }
 
-        var gameState = UseState<DoomGameState?>(() => null);
-        var lastKill = UseState<string?>(() => null);
         var shotsFired = UseState(0);
         var lastAnnoyedAt = UseState(0);
         var lastMissAnnoyTime = UseState<DateTime>(DateTime.MinValue);
@@ -32,6 +30,8 @@ public class DoomView : ViewBase
         var wadUrl = selectedWad.Value != null
             ? $"/ivy/plugins/doom/wads/{selectedWad.Value}?r={resetCounter.Value}"
             : null;
+
+        var annoy = DoomPlugin.AnnoyingPopupsEnabled;
 
         return Layout.Vertical().Padding(4).Gap(3)
             | (Layout.Horizontal().Gap(2)
@@ -63,57 +63,40 @@ public class DoomView : ViewBase
                     .Placeholder("Upload WAD")
                     .Variant(FileInputVariant.Default))
             | (wadUrl != null
-                ? (object)(Layout.Horizontal().Gap(4)
-                    | new DoomWidget
+                ? (object)new DoomWidget
+                {
+                    CanvasWidth = 640, CanvasHeight = 400, WadUrl = wadUrl, Paused = paused.Value,
+                    OnStateChanged = !annoy ? null : new(e =>
                     {
-                        CanvasWidth = 640, CanvasHeight = 400, WadUrl = wadUrl, Paused = paused.Value,
-                        OnStateChanged = new(e =>
+                        var health = e.Value.Health;
+                        if (health is > 0 and <= 50 && shotsFired.Value - lastAnnoyedAt.Value > 20)
                         {
-                            var prev = gameState.Value;
-                            gameState.Set(e.Value);
-                            // Annoy when health drops below 50 (they're in trouble)
-                            if (prev != null && prev.Health > 50 && e.Value.Health <= 50 && e.Value.Health > 0
-                                && shotsFired.Value - lastAnnoyedAt.Value > 20)
-                            {
-                                lastAnnoyedAt.Set(shotsFired.Value);
-                                DoomPlugin.OpenAnnoyingDialog?.Invoke();
-                            }
-                            return ValueTask.CompletedTask;
-                        }),
-                        OnWeaponFired = new(e =>
+                            lastAnnoyedAt.Set(shotsFired.Value);
+                            DoomPlugin.OpenAnnoyingDialog?.Invoke();
+                        }
+                        return ValueTask.CompletedTask;
+                    }),
+                    OnWeaponFired = !annoy ? null : new(e =>
+                    {
+                        var count = shotsFired.Value + 1;
+                        shotsFired.Set(count);
+                        if (count % 50 == 0 && count - lastAnnoyedAt.Value >= 30)
                         {
-                            var count = shotsFired.Value + 1;
-                            shotsFired.Set(count);
-                            // Annoy every ~50 shots
-                            if (count % 50 == 0 && count - lastAnnoyedAt.Value >= 30)
-                            {
-                                lastAnnoyedAt.Set(count);
-                                DoomPlugin.OpenAnnoyingDialog?.Invoke();
-                            }
-                            return ValueTask.CompletedTask;
-                        }),
-                        OnShotLanded = new(e =>
+                            lastAnnoyedAt.Set(count);
+                            DoomPlugin.OpenAnnoyingDialog?.Invoke();
+                        }
+                        return ValueTask.CompletedTask;
+                    }),
+                    OnShotLanded = !annoy ? null : new(e =>
+                    {
+                        if (e.Value.Hit == null && DateTime.UtcNow - lastMissAnnoyTime.Value > TimeSpan.FromMilliseconds(500))
                         {
-                            if (e.Value.Hit == null && DateTime.UtcNow - lastMissAnnoyTime.Value > TimeSpan.FromMilliseconds(500))
-                            {
-                                lastMissAnnoyTime.Set(DateTime.UtcNow);
-                                DoomPlugin.OpenAnnoyingDialog?.Invoke();
-                            }
-                            return ValueTask.CompletedTask;
-                        }),
-                        OnEnemyKilled = new(e => { lastKill.Set($"Killed {e.Value.Enemy} with {e.Value.Weapon}"); return ValueTask.CompletedTask; }),
-                    }
-                    | (Layout.Vertical().Gap(2)
-                        | Text.Label("Status")
-                        | Text.Block($"Health: {gameState.Value?.Health ?? 0}%").Bold()
-                        | Text.Block($"Armor: {gameState.Value?.Armor ?? 0}% (type {gameState.Value?.ArmorType ?? 0})")
-                        | Text.Block($"Weapon: {gameState.Value?.Weapon ?? "—"}")
-                        | Text.Label("Ammo")
-                        | Text.Block($"Bullets: {gameState.Value?.Ammo.Bullets ?? 0}")
-                        | Text.Block($"Shells: {gameState.Value?.Ammo.Shells ?? 0}")
-                        | Text.Block($"Cells: {gameState.Value?.Ammo.Cells ?? 0}")
-                        | Text.Block($"Rockets: {gameState.Value?.Ammo.Rockets ?? 0}")
-                        | (lastKill.Value != null ? Text.Muted(lastKill.Value) : Text.Muted("No kills yet"))))
+                            lastMissAnnoyTime.Set(DateTime.UtcNow);
+                            DoomPlugin.OpenAnnoyingDialog?.Invoke();
+                        }
+                        return ValueTask.CompletedTask;
+                    }),
+                }
                 : Callout.Warning("No WAD file selected. Upload a .wad file or select one from the dropdown."))
             | Text.Muted("Arrow keys to move, Ctrl to shoot, Space to open doors, Enter to start/menu.");
     }

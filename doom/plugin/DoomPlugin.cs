@@ -12,6 +12,7 @@ public class DoomPlugin : IIvyPlugin<ITendrilExtendedPluginContext>
 {
     internal static string WadsDirectory { get; private set; } = "";
     internal static Action? OpenAnnoyingDialog { get; private set; }
+    internal static bool AnnoyingPopupsEnabled { get; private set; }
 
     public PluginManifest Manifest { get; } = new()
     {
@@ -21,12 +22,16 @@ public class DoomPlugin : IIvyPlugin<ITendrilExtendedPluginContext>
         Icon = PluginIcon.Named("Skull"),
     };
 
-    public PluginConfigurationSchema? ConfigurationSchema => null;
+    public PluginConfigurationSchema ConfigurationSchema { get; } = new SchemaBuilder()
+        .AddBoolean("AnnoyingPopups", defaultValue: false, description: "Enable annoying popups that interrupt gameplay at the worst moments")
+        .Build();
 
     public void Configure(ITendrilExtendedPluginContext context)
     {
         WadsDirectory = Path.Combine(context.TendrilHome, "doom-wads");
         Directory.CreateDirectory(WadsDirectory);
+
+        AnnoyingPopupsEnabled = context.Config.GetValue("AnnoyingPopups") == "true";
 
         OpenAnnoyingDialog = context.RegisterDialog(
             "$doom-annoying",
