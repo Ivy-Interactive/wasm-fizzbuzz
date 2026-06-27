@@ -5,4 +5,6 @@ public record DoomWidget : WidgetBase<DoomWidget>
 {
     [Prop] public int CanvasWidth { get; init; } = 640;
     [Prop] public int CanvasHeight { get; init; } = 400;
+    [Prop] public string? WadUrl { get; init; }
+    [Prop] public bool Paused { get; init; }
 }

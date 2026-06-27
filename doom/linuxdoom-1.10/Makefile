@@ -4,8 +4,8 @@
 #
 # $Log:$
 #
-CC=clang
-AR=llvm-ar-10
+CC ?= clang
+AR ?= llvm-ar
 
 # If your get `error: unable to execute command: Executable "wasm-ld" doesn't exist!` on Ubntu 20.04
 # apt install lld
@@ -17,7 +17,7 @@ WASM32_CFLAGS=--target=wasm32 -nostdlib -ffreestanding -nostdinc -I../musl-1.2.2
 # Adding -m32 to make it compile on 64bit archs.
 # on Ubuntu 20.04:
 # apt install gcc-multilib libx11-dev:i386 libxext-dev:i386
-DOOM_CFLAGS=-m32 -O2 -Wall -Wno-unused-const-variable -DNORMALUNIX -DLINUX 
+DOOM_CFLAGS=-m32 -O2 -Wall -Wno-unused-const-variable -Wno-implicit-int -Wno-implicit-function-declaration -DNORMALUNIX -DLINUX
 
 CFLAGS=$(DOOM_CFLAGS) $(WASM32_CFLAGS)
 LDFLAGS=-Wl,--no-entry -Wl,--export-all -nostdlib -Wl,--error-limit=0 #-L/usr/X11R6/lib

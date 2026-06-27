@@ -1,9 +1,11 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 
 interface DoomProps {
   id: string;
   canvasWidth?: number;
   canvasHeight?: number;
+  wadUrl?: string;
+  paused?: boolean;
 }
 
 const DOOM_SCREEN_WIDTH = 320 * 2;
@@ -39,25 +41,42 @@ function doomKeyCode(keyCode: number): number {
 export const Doom: React.FC<DoomProps> = ({
   canvasWidth = 640,
   canvasHeight = 400,
+  wadUrl,
+  paused = false,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [status, setStatus] = useState<string>("Click to load DOOM");
+  const [status, setStatus] = useState<string>("Loading DOOM...");
   const [loaded, setLoaded] = useState(false);
   const instanceRef = useRef<WebAssembly.Instance | null>(null);
-  const memoryRef = useRef<WebAssembly.Memory | null>(null);
   const animFrameRef = useRef<number>(0);
+  const activeWadRef = useRef<string | null>(null);
+  const pausedRef = useRef(paused);
 
-  const startDoom = async () => {
-    if (loaded) {
-      canvasRef.current?.focus();
-      return;
+  const stopDoom = useCallback(() => {
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = 0;
     }
+    instanceRef.current = null;
+    setLoaded(false);
+    activeWadRef.current = null;
+    // Clear canvas to black
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+  }, []);
 
+  const startDoom = useCallback(async (targetWadUrl: string) => {
+    stopDoom();
     setStatus("Loading DOOM...");
 
     try {
       const memory = new WebAssembly.Memory({ initial: 108 });
-      memoryRef.current = memory;
 
       const canvas = canvasRef.current!;
       const ctx = canvas.getContext("2d")!;
@@ -108,15 +127,49 @@ export const Doom: React.FC<DoomProps> = ({
 
       instanceRef.current = response.instance;
 
+      // Load WAD into wasm memory
+      const wadResponse = await fetch(targetWadUrl);
+      if (!wadResponse.ok) {
+        throw new Error(`Failed to fetch WAD: ${wadResponse.status}`);
+      }
+      const wadBytes = new Uint8Array(await wadResponse.arrayBuffer());
+      const wadPtr = (response.instance.exports.alloc_wad as Function)(
+        wadBytes.length
+      );
+      const wasmMem = new Uint8Array(memory.buffer);
+      wasmMem.set(wadBytes, wadPtr);
+
+      // Tell the engine which game type this WAD is
+      const wadName = targetWadUrl.split("/").pop()?.toLowerCase() ?? "";
+      let wadType = 0; // 0=shareware, 1=registered, 2=commercial
+      if (
+        wadName.includes("doom2") ||
+        wadName.includes("plutonia") ||
+        wadName.includes("tnt")
+      ) {
+        wadType = 2;
+      } else if (
+        wadName === "doom.wad" ||
+        wadName === "doomu.wad"
+      ) {
+        wadType = 1;
+      }
+      (response.instance.exports.set_wad_type as Function)(wadType);
+
       // Initialize DOOM
       (response.instance.exports.main as Function)();
 
       setStatus("");
       setLoaded(true);
+      activeWadRef.current = targetWadUrl;
       canvas.focus();
 
       // Game loop
       const step = () => {
+        if (pausedRef.current) {
+          animFrameRef.current = 0;
+          return;
+        }
         (response.instance.exports.doom_loop_step as Function)();
         animFrameRef.current = requestAnimationFrame(step);
       };
@@ -125,16 +178,40 @@ export const Doom: React.FC<DoomProps> = ({
       setStatus(`Failed to load DOOM: ${err}`);
       console.error("DOOM load error:", err);
     }
-  };
+  }, [stopDoom]);
 
+  // Sync paused ref and handle pause/resume of game loop
   useEffect(() => {
-    return () => {
-      if (animFrameRef.current) {
-        cancelAnimationFrame(animFrameRef.current);
-      }
-    };
-  }, []);
+    pausedRef.current = paused;
+    if (!paused && loaded && instanceRef.current && !animFrameRef.current) {
+      // Resume: restart the game loop
+      const instance = instanceRef.current;
+      const step = () => {
+        if (pausedRef.current) {
+          animFrameRef.current = 0;
+          return;
+        }
+        (instance.exports.doom_loop_step as Function)();
+        animFrameRef.current = requestAnimationFrame(step);
+      };
+      animFrameRef.current = requestAnimationFrame(step);
+    }
+  }, [paused, loaded]);
 
+  // Auto-load on mount or when wadUrl changes
+  useEffect(() => {
+    if (!wadUrl) return;
+    if (activeWadRef.current !== wadUrl) {
+      startDoom(wadUrl);
+    }
+  }, [wadUrl, startDoom]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => stopDoom();
+  }, [stopDoom]);
+
+  // Keyboard input
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !instanceRef.current) return;
@@ -179,11 +256,10 @@ export const Doom: React.FC<DoomProps> = ({
         width={canvasWidth}
         height={canvasHeight}
         tabIndex={0}
-        onClick={startDoom}
+        onClick={() => canvasRef.current?.focus()}
         style={{
           border: "2px solid var(--border)",
           borderRadius: "8px",
-          cursor: loaded ? "default" : "pointer",
           background: "#000",
           imageRendering: "pixelated",
         }}

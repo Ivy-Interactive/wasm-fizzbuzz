@@ -10,6 +10,8 @@ namespace Ivy.Tendril.Plugin.Doom;
 
 public class DoomPlugin : IIvyPlugin<ITendrilExtendedPluginContext>
 {
+    internal static string WadsDirectory { get; private set; } = "";
+
     public PluginManifest Manifest { get; } = new()
     {
         Id = "Ivy.Tendril.Plugin.Doom",
@@ -22,6 +24,9 @@ public class DoomPlugin : IIvyPlugin<ITendrilExtendedPluginContext>
 
     public void Configure(ITendrilExtendedPluginContext context)
     {
+        WadsDirectory = Path.Combine(context.TendrilHome, "doom-wads");
+        Directory.CreateDirectory(WadsDirectory);
+
         context.AddApp(new AppDescriptor
         {
             Id = "doom",
@@ -35,24 +40,40 @@ public class DoomPlugin : IIvyPlugin<ITendrilExtendedPluginContext>
 
         context.UseWebApplication(app =>
         {
-            app.MapGet("/ivy/plugins/doom/{fileName}", (string fileName) =>
+            // Serve doom.wasm from embedded resources
+            app.MapGet("/ivy/plugins/doom/doom.wasm", () =>
             {
                 var assembly = typeof(DoomPlugin).Assembly;
-                var resourceName = $"Ivy.Tendril.Plugin.Doom.frontend.public.{fileName}";
-
-                var stream = assembly.GetManifestResourceStream(resourceName);
-
+                var stream = assembly.GetManifestResourceStream("Ivy.Tendril.Plugin.Doom.frontend.public.doom.wasm");
                 if (stream == null)
                     return Results.NotFound();
+                return Results.File(stream, "application/wasm");
+            });
 
-                var contentType = fileName switch
-                {
-                    "doom.wasm" => "application/wasm",
-                    "doom1.wad" => "application/octet-stream",
-                    _ => "application/octet-stream"
-                };
+            // List available WADs
+            app.MapGet("/ivy/plugins/doom/wads", () =>
+            {
+                if (!Directory.Exists(WadsDirectory))
+                    return Results.Ok(Array.Empty<string>());
 
-                return Results.File(stream, contentType);
+                var wads = Directory.GetFiles(WadsDirectory, "*.wad")
+                    .Select(Path.GetFileName)
+                    .OrderBy(n => n)
+                    .ToArray();
+                return Results.Ok(wads);
+            });
+
+            // Serve a WAD file
+            app.MapGet("/ivy/plugins/doom/wads/{name}", (string name) =>
+            {
+                if (name.Contains("..") || name.Contains('/') || name.Contains('\\'))
+                    return Results.BadRequest();
+
+                var path = Path.Combine(WadsDirectory, name);
+                if (!File.Exists(path))
+                    return Results.NotFound();
+
+                return Results.File(path, "application/octet-stream");
             });
         });
     }
