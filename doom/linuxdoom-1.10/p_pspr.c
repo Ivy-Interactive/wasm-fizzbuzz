@@ -41,6 +41,9 @@ rcsid[] = "$Id: p_pspr.c,v 1.5 1997/02/03 22:45:12 b1 Exp $";
 
 #include "p_pspr.h"
 
+// Hook for game events — implemented in Rust glue
+extern void doom_hook_weapon_fired(int weapon);
+
 #define LOWERSPEED		FRACUNIT*6
 #define RAISESPEED		FRACUNIT*6
 
@@ -246,10 +249,12 @@ boolean P_CheckAmmo (player_t* player)
 void P_FireWeapon (player_t* player)
 {
     statenum_t	newstate;
-	
+
     if (!P_CheckAmmo (player))
 	return;
-	
+
+    doom_hook_weapon_fired(player->readyweapon);
+
     P_SetMobjState (player->mo, S_PLAY_ATK1);
     newstate = weaponinfo[player->readyweapon].atkstate;
     P_SetPsprite (player, ps_weapon, newstate);

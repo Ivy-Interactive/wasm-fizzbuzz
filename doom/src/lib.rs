@@ -2,6 +2,7 @@
 extern crate lazy_static;
 
 mod gamefile;
+mod game_hooks;
 pub mod js_imports;
 mod malloc;
 mod printf;

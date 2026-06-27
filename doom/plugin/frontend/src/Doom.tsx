@@ -6,6 +6,7 @@ interface DoomProps {
   canvasHeight?: number;
   wadUrl?: string;
   paused?: boolean;
+  eventHandler?: (eventName: string, widgetId: string, args: unknown[]) => void;
 }
 
 const DOOM_SCREEN_WIDTH = 320 * 2;
@@ -38,11 +39,26 @@ function doomKeyCode(keyCode: number): number {
   }
 }
 
+const WEAPON_NAMES = [
+  "fist", "pistol", "shotgun", "chaingun", "rocket_launcher",
+  "plasma_rifle", "bfg9000", "chainsaw", "super_shotgun",
+];
+
+const ENEMY_NAMES: Record<number, string> = {
+  1: "zombieman", 2: "shotgun_guy", 3: "archvile",
+  5: "revenant", 8: "fatso", 11: "imp",
+  12: "demon", 13: "spectre", 14: "cacodemon",
+  15: "baron_of_hell", 17: "hell_knight", 18: "lost_soul",
+  19: "spider_mastermind", 20: "arachnotron", 22: "pain_elemental",
+};
+
 export const Doom: React.FC<DoomProps> = ({
+  id,
   canvasWidth = 640,
   canvasHeight = 400,
   wadUrl,
   paused = false,
+  eventHandler,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [status, setStatus] = useState<string>("Loading DOOM...");
@@ -51,6 +67,10 @@ export const Doom: React.FC<DoomProps> = ({
   const animFrameRef = useRef<number>(0);
   const activeWadRef = useRef<string | null>(null);
   const pausedRef = useRef(paused);
+  const eventHandlerRef = useRef(eventHandler);
+  eventHandlerRef.current = eventHandler;
+  const idRef = useRef(id);
+  idRef.current = id;
 
   const stopDoom = useCallback(() => {
     if (animFrameRef.current) {
@@ -114,6 +134,17 @@ export const Doom: React.FC<DoomProps> = ({
           js_stderr: appendOutput("stderr"),
           js_milliseconds_since_start: () => performance.now(),
           js_draw_screen: drawCanvas,
+          js_on_weapon_fired: (weapon: number) => {
+            eventHandlerRef.current?.("OnWeaponFired", idRef.current, [{
+              weapon: WEAPON_NAMES[weapon] ?? `unknown_${weapon}`,
+            }]);
+          },
+          js_on_enemy_killed: (enemyType: number, killerWeapon: number) => {
+            eventHandlerRef.current?.("OnEnemyKilled", idRef.current, [{
+              enemy: ENEMY_NAMES[enemyType] ?? `unknown_${enemyType}`,
+              weapon: WEAPON_NAMES[killerWeapon] ?? `unknown_${killerWeapon}`,
+            }]);
+          },
         },
         env: {
           memory,
@@ -164,6 +195,27 @@ export const Doom: React.FC<DoomProps> = ({
       activeWadRef.current = targetWadUrl;
       canvas.focus();
 
+      // State polling — emit every ~500ms (not every frame)
+      let lastStateTime = 0;
+      let lastState = "";
+      const pollState = () => {
+        const now = performance.now();
+        if (now - lastStateTime < 500) return;
+        lastStateTime = now;
+        const ptr = (response.instance.exports.get_player_state as Function)() as number;
+        const state = new Int32Array(memory.buffer, ptr, 8);
+        const stateStr = state.join(",");
+        if (stateStr === lastState) return;
+        lastState = stateStr;
+        eventHandlerRef.current?.("OnStateChanged", idRef.current, [{
+          health: state[0],
+          armor: state[1],
+          armorType: state[2],
+          weapon: WEAPON_NAMES[state[3]] ?? `unknown_${state[3]}`,
+          ammo: { bullets: state[4], shells: state[5], cells: state[6], rockets: state[7] },
+        }]);
+      };
+
       // Game loop
       const step = () => {
         if (pausedRef.current) {
@@ -171,6 +223,7 @@ export const Doom: React.FC<DoomProps> = ({
           return;
         }
         (response.instance.exports.doom_loop_step as Function)();
+        pollState();
         animFrameRef.current = requestAnimationFrame(step);
       };
       animFrameRef.current = requestAnimationFrame(step);

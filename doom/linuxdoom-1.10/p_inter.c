@@ -40,6 +40,9 @@ rcsid[] = "$Id: p_inter.c,v 1.4 1997/02/03 22:45:11 b1 Exp $";
 
 #include "p_local.h"
 
+// Hook for game events — implemented in Rust glue
+extern void doom_hook_enemy_killed(int enemy_type, int killer_weapon);
+
 #include "s_sound.h"
 
 #ifdef __GNUG__
@@ -684,7 +687,10 @@ P_KillMobj
     {
 	// count for intermission
 	if (target->flags & MF_COUNTKILL)
-	    source->player->killcount++;	
+	{
+	    source->player->killcount++;
+	    doom_hook_enemy_killed(target->type, source->player->readyweapon);
+	}
 
 	if (target->player)
 	    source->player->frags[target->player-players]++;

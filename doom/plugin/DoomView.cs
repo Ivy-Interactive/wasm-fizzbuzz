@@ -22,12 +22,16 @@ public class DoomView : ViewBase
             selectedWad.Set(fileName);
         }
 
+        var gameState = UseState<DoomGameState?>(() => null);
+        var lastKill = UseState<string?>(() => null);
+
         var availableWads = GetAvailableWads();
         var wadUrl = selectedWad.Value != null
             ? $"/ivy/plugins/doom/wads/{selectedWad.Value}?r={resetCounter.Value}"
             : null;
 
-        return Layout.Vertical().Padding(4).Gap(4)
+        return Layout.Vertical().Padding(4).Gap(3)
+            | Text.Muted("Arrow keys to move, Ctrl to shoot, Space to open doors, Enter to start/menu.")
             | (Layout.Horizontal().Gap(2)
                 | selectedWad.ToSelectInput(
                     availableWads.Select(w => new Option<string?>(w, w)).ToArray(),
@@ -57,7 +61,24 @@ public class DoomView : ViewBase
                     .Placeholder("Upload WAD")
                     .Variant(FileInputVariant.Default))
             | (wadUrl != null
-                ? (object)new DoomWidget { CanvasWidth = 640, CanvasHeight = 400, WadUrl = wadUrl, Paused = paused.Value }
+                ? (object)(Layout.Horizontal().Gap(4)
+                    | new DoomWidget
+                    {
+                        CanvasWidth = 640, CanvasHeight = 400, WadUrl = wadUrl, Paused = paused.Value,
+                        OnStateChanged = new(e => { gameState.Set(e.Value); return ValueTask.CompletedTask; }),
+                        OnEnemyKilled = new(e => { lastKill.Set($"Killed {e.Value.Enemy} with {e.Value.Weapon}"); return ValueTask.CompletedTask; }),
+                    }
+                    | (Layout.Vertical().Gap(2)
+                        | Text.Label("Status")
+                        | Text.Block($"Health: {gameState.Value?.Health ?? 0}%").Bold()
+                        | Text.Block($"Armor: {gameState.Value?.Armor ?? 0}% (type {gameState.Value?.ArmorType ?? 0})")
+                        | Text.Block($"Weapon: {gameState.Value?.Weapon ?? "—"}")
+                        | Text.Label("Ammo")
+                        | Text.Block($"Bullets: {gameState.Value?.Ammo.Bullets ?? 0}")
+                        | Text.Block($"Shells: {gameState.Value?.Ammo.Shells ?? 0}")
+                        | Text.Block($"Cells: {gameState.Value?.Ammo.Cells ?? 0}")
+                        | Text.Block($"Rockets: {gameState.Value?.Ammo.Rockets ?? 0}")
+                        | (lastKill.Value != null ? Text.Muted(lastKill.Value) : Text.Muted("No kills yet"))))
                 : Callout.Warning("No WAD file selected. Upload a .wad file or select one from the dropdown."));
     }
 

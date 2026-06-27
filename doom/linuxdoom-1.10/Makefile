@@ -33,6 +33,7 @@ OBJS=				\
 		$(O)/doomstat.o		\
 		$(O)/dstrings.o		\
 		$(O)/i_system.o		\
+		$(O)/i_hooks.o		\
 		$(O)/i_sound.o		\
 		$(O)/i_net.o			\
 		$(O)/tables.o			\
