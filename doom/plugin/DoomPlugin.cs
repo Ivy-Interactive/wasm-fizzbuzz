@@ -1,6 +1,5 @@
 using Ivy.Plugins;
 using Ivy.Tendril.Plugins;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
@@ -48,10 +47,10 @@ public class DoomPlugin : IIvyPlugin<ITendrilExtendedPluginContext>
             ViewFactory = () => new DoomView(),
         });
 
-        context.UseWebApplication(app =>
+        context.UseEndpoints("doom", endpoints =>
         {
             // Serve doom.wasm from embedded resources
-            app.MapGet("/ivy/plugins/doom/doom.wasm", () =>
+            endpoints.MapGet("doom.wasm", () =>
             {
                 var assembly = typeof(DoomPlugin).Assembly;
                 var stream = assembly.GetManifestResourceStream("Ivy.Tendril.Plugin.Doom.frontend.public.doom.wasm");
@@ -61,7 +60,7 @@ public class DoomPlugin : IIvyPlugin<ITendrilExtendedPluginContext>
             });
 
             // List available WADs
-            app.MapGet("/ivy/plugins/doom/wads", () =>
+            endpoints.MapGet("wads", () =>
             {
                 if (!Directory.Exists(WadsDirectory))
                     return Results.Ok(Array.Empty<string>());
@@ -74,7 +73,7 @@ public class DoomPlugin : IIvyPlugin<ITendrilExtendedPluginContext>
             });
 
             // Serve a WAD file
-            app.MapGet("/ivy/plugins/doom/wads/{name}", (string name) =>
+            endpoints.MapGet("wads/{name}", (string name) =>
             {
                 if (name.Contains("..") || name.Contains('/') || name.Contains('\\'))
                     return Results.BadRequest();
