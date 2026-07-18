@@ -5,10 +5,17 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>Ivy.Tendril.Plugin.Doom</PackageId>
+    <Title>DOOM</Title>
+    <Authors>Ivy Interactive</Authors>
+    <Company>Ivy Interactive</Company>
     <Description>DOOM (1993) running in WebAssembly as an Ivy Tendril plugin with dynamic WAD loading.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Ivy-Interactive/wasm-fizzbuzz</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Ivy-Interactive/wasm-fizzbuzz</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <TendrilIconKind>named</TendrilIconKind>
+    <TendrilIconValue>Gamepad2</TendrilIconValue>
     <NoWarn>NU5104</NoWarn>
   </PropertyGroup>
 
