@@ -14,6 +14,8 @@ cd "$(dirname "$0")"
 rm -rf ./nupkg
 mkdir -p ./nupkg
 
+dotnet restore Ivy.Tendril.Plugin.Doom.csproj --no-cache
+
 echo "Packing Ivy.Tendril.Plugin.Doom..."
 dotnet pack Ivy.Tendril.Plugin.Doom.csproj \
   --configuration Release \
