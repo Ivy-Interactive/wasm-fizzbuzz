@@ -25,7 +25,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Ivy.Tendril.Plugin.Extended.Abstractions" Version="1.1.13-pre-20260710033346" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Ivy.Tendril.Plugin.Extended.Abstractions" Version="1.1.13-pre-20260718234207" />
   </ItemGroup>
 
   <ItemGroup>
