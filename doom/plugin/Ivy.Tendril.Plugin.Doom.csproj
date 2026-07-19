@@ -4,6 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <PackageId>Ivy.Tendril.Plugin.Doom</PackageId>
     <Title>DOOM</Title>
     <Authors>Ivy Interactive</Authors>
@@ -14,8 +15,6 @@
     <RepositoryUrl>https://github.com/Ivy-Interactive/wasm-fizzbuzz</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <TendrilIconKind>named</TendrilIconKind>
-    <TendrilIconValue>Gamepad2</TendrilIconValue>
     <NoWarn>NU5104</NoWarn>
   </PropertyGroup>
 
@@ -37,6 +36,7 @@
     <EmbeddedResource Include="frontend/public/doom.wasm" />
     <EmbeddedResource Include="THIRD-PARTY-LICENSES" />
     <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="tendril.json" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <Target Name="BuildFrontend" BeforeTargets="Build" Condition="Exists('frontend/package.json')">
