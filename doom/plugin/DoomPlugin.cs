@@ -18,7 +18,6 @@ public class DoomPlugin : IIvyPlugin<ITendrilExtendedPluginContext>
     {
         Id = "Ivy.Tendril.Plugin.Doom",
         Title = "DOOM",
-        Version = new Version(1, 0, 0),
         Icon = PluginIcon.Named("Skull"),
     };
 
