@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Ivy.Tendril.Plugin.Extended.Abstractions" Version="1.1.15-pre-20260723034425" />
+    <PackageReference Include="Ivy.Tendril.Plugin.Extended.Abstractions" Version="1.1.15-pre-20260724042658" />
   </ItemGroup>
 
   <ItemGroup>
