@@ -11,8 +11,8 @@
     <Company>Ivy Interactive</Company>
     <Description>DOOM (1993) running in WebAssembly as an Ivy Tendril plugin with dynamic WAD loading.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/Ivy-Interactive/wasm-fizzbuzz</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/Ivy-Interactive/wasm-fizzbuzz</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/Ivy-Interactive/Ivy-Tendril-Plugin-Doom</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Ivy-Interactive/Ivy-Tendril-Plugin-Doom</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <NoWarn>NU5104</NoWarn>
